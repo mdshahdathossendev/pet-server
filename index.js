@@ -6,6 +6,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = process.env.MONGODB_URI;
 app.use(express.json());
 const cors = require('cors');
+const { createRemoteJWKSet, jwtVerify } = require('jose-cjs');
 const port = process.env.PORT
 app.use(cors());
 const client = new MongoClient(uri, {
@@ -15,6 +16,32 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   }
 });
+const JWKS = createRemoteJWKSet(
+    new URL(`${process.env.CLIENT_URL}/api/auth/jwks`)
+)
+const verifayToken = async(req, res, next)=>{
+    const authHeader = req.headers.authorization
+    if(!authHeader){
+     return res.status(401).json({
+      message: "Unauthorized"
+    });
+  };
+    const token = authHeader.split(" ")[1];
+    console.log(token)
+  if(!token){
+     return res.status(401).json({
+      message: "Unauthorized"});
+  };
+  try{
+    const {payload} = await jwtVerify(token, JWKS);
+  console.log(payload)
+   next();
+  }
+  catch (error) {
+    console.error('Token validation failed:', error)
+    throw error
+  }
+}
 async function run() {
   try {
     const db = client.db("Pat-server");
@@ -28,7 +55,7 @@ async function run() {
         const result = await patCullation.find().toArray();
         res.send(result)
     });
-    app.get('/allpat/:id', async(req, res)=> {
+    app.get('/allpat/:id',verifayToken, async(req, res)=> {
         const id = req.params.id;
         const query = {_id: new ObjectId(id)};
         const result = await patCullation.findOne(query);
@@ -67,7 +94,7 @@ app.post('/listing', async(req, res)=>{
     const result = await myListingCulation.insertOne(query);
     res.send(result)
   });
-app.get('/listing', async(req, res)=>{
+app.get('/listing',verifayToken, async(req, res)=>{
     const result = await myListingCulation.find().toArray();
     res.send(result)
 });
@@ -80,6 +107,14 @@ app.get('/listing/user/:userId', async (req, res) => {
 
     res.send(result);
 });
+ app.get('/listing/delts/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = {
+        deltsId: id
+      };
+      const result = await myListingCulation.find(query).toArray();
+      res.send(result);
+    });
 app.delete('/listing/:id',async(req, res)=>{
     const id = req.params.id;
     const query = {_id: new ObjectId(id)};
@@ -91,6 +126,33 @@ app.get('/listing/:id', async(req, res) => {
         const query = {_id: new ObjectId(id)};
         const result = await myListingCulation.findOne(query);
         res.send(result);
+});
+app.get("/pets", async (req, res) => {
+  try {
+    const { search, species } = req.query;
+
+    let query = {};
+
+    // 🔍 search by name
+    if (search) {
+      query.petName = {
+        $regex: search,
+        $options: "i",
+      };
+    }
+
+    // 🐶 filter by species
+    if (species) {
+      query.species = { $in: species.split(",") };
+    }
+
+    const pets = await petCollection.find(query).toArray();
+
+    res.send(pets);
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ error: "Server error" });
+  }
 });
   } finally {
     // await client.close();
