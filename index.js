@@ -71,20 +71,26 @@ app.get('/listing', async(req, res)=>{
     const result = await myListingCulation.find().toArray();
     res.send(result)
 });
-app.get('/listing/:userId', async(req, res) => {
-
+app.get('/listing/user/:userId', async (req, res) => {
     const userId = req.params.userId;
 
-    const query = {
-        userId: userId
-    };
-
     const result = await myListingCulation
-      .find(query)
-      .toArray();
+        .find({ userId })
+        .toArray();
 
     res.send(result);
-
+});
+app.delete('/listing/:id',async(req, res)=>{
+    const id = req.params.id;
+    const query = {_id: new ObjectId(id)};
+    const result = await myListingCulation.deleteOne(query);
+    res.send(result)
+});
+app.get('/listing/:id', async(req, res) => {
+    const id = req.params.id;
+        const query = {_id: new ObjectId(id)};
+        const result = await myListingCulation.findOne(query);
+        res.send(result);
 });
   } finally {
     // await client.close();
