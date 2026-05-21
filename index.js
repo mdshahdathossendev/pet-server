@@ -47,15 +47,15 @@ async function run() {
     const db = client.db("Pat-server");
     const patCullation = db.collection("data");
     const myListingCulation = db.collection('listing')
-    await client.connect();
+    // await client.connect();
     
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
     app.get('/allpat', async(req, res) =>{
         const result = await patCullation.find().toArray();
         res.send(result)
     });
-    app.get('/allpat/:id',verifayToken, async(req, res)=> {
+    app.get('/allpat/:id', async(req, res)=> {
         const id = req.params.id;
         const query = {_id: new ObjectId(id)};
         const result = await patCullation.findOne(query);
@@ -94,7 +94,7 @@ app.post('/listing', async(req, res)=>{
     const result = await myListingCulation.insertOne(query);
     res.send(result)
   });
-app.get('/listing',verifayToken, async(req, res)=>{
+app.get('/listing', async(req, res)=>{
     const result = await myListingCulation.find().toArray();
     res.send(result)
 });
@@ -167,5 +167,3 @@ app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
 })
 
-// patplatfrom
-// vyhgW5TCb5N0TPxr
