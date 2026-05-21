@@ -66,7 +66,7 @@ async function run() {
         const result = await patCullation.insertOne(query);
         res.send(result)
     });
-    app.delete('/allpat/:id', async(req, res)=>{
+    app.delete('/allpat/:id',verifayToken, async(req, res)=>{
         const id = req.params.id;
         const query = {_id: new ObjectId(id)};
         const result = await patCullation.deleteOne(query);
