@@ -94,7 +94,7 @@ app.post('/listing', async(req, res)=>{
     const result = await myListingCulation.insertOne(query);
     res.send(result)
   });
-app.get('/listing', async(req, res)=>{
+app.get('/listing',verifayToken, async(req, res)=>{
     const result = await myListingCulation.find().toArray();
     res.send(result)
 });
@@ -121,7 +121,7 @@ app.delete('/listing/:id',async(req, res)=>{
     const result = await myListingCulation.deleteOne(query);
     res.send(result)
 });
-app.get('/listing/:id', async(req, res) => {
+app.get('/listing/:id', verifayToken, async(req, res) => {
     const id = req.params.id;
         const query = {_id: new ObjectId(id)};
         const result = await myListingCulation.findOne(query);
